@@ -7,7 +7,7 @@ class Product(models.Model):
     stock = models.IntegerField()
     available = models.BooleanField(default=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    image = models.CharField(max_length=127, blank=True)
+    product_image = models.ImageField(null=True, default=None)
 
     seller = models.ForeignKey(
         'users.User',
