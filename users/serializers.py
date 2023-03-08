@@ -1,12 +1,19 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from .models import User
+from .models import User, Address
 
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = "__all__"
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    address = AddressSerializer()
     def create(self, validated_data: dict) -> User:
         return User.objects.create_superuser(**validated_data)
+    
     def update(self, instance: User, validated_data: dict) -> User:
         for key, value in validated_data.items():
             setattr(instance, key, value)
@@ -24,4 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
                     "image",
                     "email",                    
                     "is_seller",
+                    "password",
+                    "username",
+                    "address",
         ]

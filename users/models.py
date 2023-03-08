@@ -14,6 +14,11 @@ class User(AbstractUser):
         }
     )
     is_seller = models.BooleanField(default=False)
+    address = models.OneToOneField(
+        'users.Address',
+        on_delete=models.CASCADE,
+        related_name='user'
+    )
 
     def __str__(self) -> str:
         return f"<User [{self.id}] - {self.first_name}>"
@@ -26,12 +31,6 @@ class Address(models.Model):
     state = models.CharField(max_length=2)
     zip_code = models.CharField(max_length=8)
     country = models.CharField(max_length=127)
-
-    user = models.OneToOneField(
-        'users.User',
-        on_delete=models.CASCADE,
-        related_name='address'
-    )
 
     def __repr__(self) -> str:
         return f"<Address ({self.id}) - {self.street}>"
