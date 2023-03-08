@@ -12,7 +12,9 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     address = AddressSerializer()
     def create(self, validated_data: dict) -> User:
-        return User.objects.create_superuser(**validated_data)
+        adress_data = validated_data.pop("address")
+        address_object = Address.objects.create(**adress_data)
+        return User.objects.create_superuser(**validated_data, address = address_object)
     
     def update(self, instance: User, validated_data: dict) -> User:
         for key, value in validated_data.items():
