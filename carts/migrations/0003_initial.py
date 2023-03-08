@@ -10,19 +10,20 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('carts', '0002_initial'),
         ('products', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='seller',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='products', to=settings.AUTH_USER_MODEL),
+            model_name='cart',
+            name='client',
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='cart', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
-            model_name='category',
+            model_name='cart',
             name='products',
-            field=models.ManyToManyField(related_name='categories', to='products.product'),
+            field=models.ManyToManyField(related_name='cart', through='carts.CartProducts', to='products.product'),
         ),
     ]
