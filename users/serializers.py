@@ -1,39 +1,61 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 from .models import User, Address
 
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = "__all__"
+        fields = [
+            "id",
+            "zip_code",
+            "country",
+            "state",
+            "city",
+            "street",
+            "number",
+        ]
+
+        extra_kwargs = {
+            "id": {"read_only": True}
+        }
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
     address = AddressSerializer()
     def create(self, validated_data: dict) -> User:
         adress_data = validated_data.pop("address")
         address_object = Address.objects.create(**adress_data)
-        return User.objects.create_superuser(**validated_data, address = address_object)
+
+        if validated_data["is_superuser"]:
+            return User.objects.create_superuser(**validated_data, address=address_object)
+        
+        return User.objects.create_user(**validated_data, address=address_object)
     
     def update(self, instance: User, validated_data: dict) -> User:
         for key, value in validated_data.items():
-            setattr(instance, key, value)
-        instance.set_password(validated_data["password"])
-        instance.save()
+            if key == "password":
+                instance.set_password(value)
+            else:
+                setattr(instance, key, value)
 
+        instance.save()
         return instance
 
     class Meta:
         model = User
         fields = [
-                    "id",
-                    "first_name",
-                    "last_name", 
-                    "image",
-                    "email",                    
-                    "is_seller",
-                    "password",
-                    "username",
-                    "address",
+            "id",
+            "first_name",
+            "last_name", 
+            "image",
+            "email",                    
+            "is_seller",
+            "is_superuser",
+            "password",
+            "username",
+            "address",
         ]
+
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "password": {"write_only": True},
+        }

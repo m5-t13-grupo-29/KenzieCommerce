@@ -1,18 +1,17 @@
-from .models import User, Address
+from .models import User
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import generics, status, response
+from rest_framework import generics
 from .serializers import UserSerializer
-from .permissions import IsAdminOrSellerOrReadOnly
+from .permissions import IsAdminOrSellerOrReadOnly, IsAdminToList
 
 
-class UserView(generics.CreateAPIView):
+class UserView(generics.ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminToList]
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # def create(self, request, *args, **kwargs):
-    #     adress_value = self.request.data.get("adress", False) 
-    #     if not adress_value:
-    #         return response({"msg": "adress is necessary"}, status.HTTP_400_BAD_REQUEST)     
-    #     return super().create(request, *args, **kwargs)
+
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
