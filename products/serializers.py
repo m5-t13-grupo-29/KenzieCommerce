@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Product, Category
+from users.serializers import SellerSerializer
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -8,12 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-
         ]
-
-        # extra_kwargs = {
-        #     "products": {"read_only": True}
-        # }
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -28,26 +24,46 @@ class ProductSerializer(serializers.ModelSerializer):
 
             if not categoryExists:
                 categoryExists = Category.objects.create(**category)
-            
+
             product.categories.add(categoryExists)
-        
+
         return product
-    
+
+    def update(self, instance: Product, validated_data: dict) -> Product:
+        if "categories" in validated_data:
+            categories_data = validated_data.pop("categories")
+
+            for category in categories_data:
+                categoryExists = Category.objects.filter(
+                    name__iexact=category["name"]
+                ).first()
+
+                if not categoryExists:
+                    categoryExists = Category.objects.create(**category)
+
+                instance.categories.add(categoryExists)
+
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+
+        instance.save()
+        return instance
+
     categories = CategorySerializer(many=True)
+    seller = SellerSerializer(read_only=True)
 
     class Meta:
         model = Product
         fields = [
             "id",
             "name",
-            "categories",
             "stock",
             "price",
             "product_image",
+            "categories",
             "seller"
         ]
 
         extra_kwargs = {
-            "seller": {"read_only": True},
             "product_image": {"read_only": True}
         }

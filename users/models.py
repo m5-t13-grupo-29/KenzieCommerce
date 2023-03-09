@@ -26,7 +26,7 @@ class User(AbstractUser):
 
 class Address(models.Model):
     street = models.CharField(max_length=127)
-    number = models.IntegerField()
+    number = models.CharField(max_length=8, null=True, default=None)
     city = models.CharField(max_length=127)
     state = models.CharField(max_length=2)
     zip_code = models.CharField(max_length=8)

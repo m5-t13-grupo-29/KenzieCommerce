@@ -59,3 +59,14 @@ class UserSerializer(serializers.ModelSerializer):
             "id": {"read_only": True},
             "password": {"write_only": True},
         }
+
+
+class SellerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "email"
+        ]
