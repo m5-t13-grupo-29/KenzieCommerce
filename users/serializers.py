@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Address
+from carts.models import Cart
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -21,21 +22,23 @@ class AddressSerializer(serializers.ModelSerializer):
             "number",
         ]
 
-        extra_kwargs = {
-            "id": {"read_only": True}
-        }
+        extra_kwargs = {"id": {"read_only": True}}
+
 
 class UserSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+
     def create(self, validated_data: dict) -> User:
         adress_data = validated_data.pop("address")
         address_object = Address.objects.create(**adress_data)
 
         if validated_data["is_superuser"]:
-            return User.objects.create_superuser(**validated_data, address=address_object)
-        
+            return User.objects.create_superuser(
+                **validated_data, address=address_object
+            )
+
         return User.objects.create_user(**validated_data, address=address_object)
-    
+
     def update(self, instance: User, validated_data: dict) -> User:
         for key, value in validated_data.items():
             if key == "password":
@@ -51,9 +54,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "first_name",
-            "last_name", 
+            "last_name",
             "image",
-            "email",                    
+            "email",
             "is_seller",
             "is_superuser",
             "password",
@@ -70,9 +73,4 @@ class UserSerializer(serializers.ModelSerializer):
 class SellerSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "email"
-        ]
+        fields = ["id", "first_name", "last_name", "email"]
