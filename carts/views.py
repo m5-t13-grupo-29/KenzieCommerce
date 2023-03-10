@@ -1,3 +1,49 @@
-from django.shortcuts import render
+from .models import CartProducts, Cart
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework import generics
+from .serializers import CartSerializer, CartProductsSerializer
+from .permissions import IsOwner
+from products.models import Product
+from django.shortcuts import get_object_or_404
+from users.models import User
+from rest_framework.views import APIView, Request, Response, status
 
-# Create your views here.
+
+class CartProductsView(generics.CreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsOwner]
+
+    queryset = CartProducts.objects.all()
+    serializer_class = CartProductsSerializer
+
+    def perform_create(self, serializer):
+        self.check_object_permissions(self.request, self.request.user)
+        product = get_object_or_404(Product, pk=self.kwargs["pk"])
+
+        if not Cart.objects.filter(client_id=self.request.user.id).exists():
+            cart = Cart.objects.create(client=self.request.user)
+            serializer.save(cart=cart, products=product)
+        else:
+            serializer.save(cart=self.request.user.cart, products=product)
+
+
+class CartProductsDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsOwner]
+
+    def delete(self, request: Request, products_id: int) -> Response:
+        user = get_object_or_404(User, id=request.user.id)
+        cart = get_object_or_404(Cart, id=user.cart.id)
+
+        cart_product = CartProducts.objects.filter(
+            cart_id=cart.id, products_id=products_id
+        ).first()
+
+        if not cart_product:
+            return Response(
+                {"message": "Product not found in cart"}, status.HTTP_404_NOT_FOUND
+            )
+
+        cart_product.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
