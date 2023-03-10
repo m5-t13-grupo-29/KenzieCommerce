@@ -17,6 +17,7 @@ class CartProductsView(generics.CreateAPIView):
     serializer_class = CartProductsSerializer
 
     def perform_create(self, serializer):
+        self.check_object_permissions(self.request, self.request.user)
         product = get_object_or_404(Product, pk=self.kwargs["pk"])
 
         if not Cart.objects.filter(client_id=self.request.user.id).exists():

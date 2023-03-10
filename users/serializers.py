@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import User, Address
-from carts.models import Cart
 
 
 class AddressSerializer(serializers.ModelSerializer):
