@@ -14,6 +14,20 @@ class ProductView(generics.ListCreateAPIView):
     queryset = Product.objects.all().order_by("id")
     serializer_class = ProductSerializer
 
+    def get_queryset(self):
+        name_params = self.request.query_params.get("name")
+        category_params = self.request.query_params.get("category")
+
+        if name_params:
+            queryset = Product.objects.filter(name__icontains=name_params)
+            return queryset
+        
+        if category_params:
+            queryset = Product.objects.filter(categories__name__icontains=category_params)
+            return queryset
+        
+        return super().get_queryset()
+
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
 
