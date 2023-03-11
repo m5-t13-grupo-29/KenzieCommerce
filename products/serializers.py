@@ -49,8 +49,14 @@ class ProductSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
     categories = CategorySerializer(many=True)
     seller = SellerSerializer(read_only=True)
+
+    is_available = serializers.SerializerMethodField()
+
+    def get_is_available(self, obj: Product):
+        return bool(obj.stock)
 
     class Meta:
         model = Product
@@ -58,6 +64,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "stock",
+            "is_available",
             "price",
             "product_image",
             "categories",
