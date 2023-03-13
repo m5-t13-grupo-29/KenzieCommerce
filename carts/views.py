@@ -9,6 +9,18 @@ from users.models import User
 from rest_framework.views import APIView, Request, Response, status
 
 
+class CartView(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsOwner]
+
+    serializer_class = CartProductsSerializer
+
+    def get_queryset(self):
+        cart = get_object_or_404(Cart, id=self.request.user.cart.id)
+
+        return CartProducts.objects.filter(cart_id=cart.id)
+
+
 class CartProductsView(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsOwner]
