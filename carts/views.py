@@ -22,21 +22,23 @@ class CartProductsView(generics.CreateAPIView):
 
         if not Cart.objects.filter(client_id=self.request.user.id).exists():
             cart = Cart.objects.create(client=self.request.user)
-            serializer.save(cart=cart, products=product)
+            serializer.save(cart=cart, product=product, seller=product.seller)
         else:
-            serializer.save(cart=self.request.user.cart, products=product)
+            serializer.save(
+                cart=self.request.user.cart, product=product, seller=product.seller
+            )
 
 
 class CartProductsDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsOwner]
 
-    def delete(self, request: Request, products_id: int) -> Response:
+    def delete(self, request: Request, product_id: int) -> Response:
         user = get_object_or_404(User, id=request.user.id)
         cart = get_object_or_404(Cart, id=user.cart.id)
 
         cart_product = CartProducts.objects.filter(
-            cart_id=cart.id, products_id=products_id
+            cart_id=cart.id, product_id=product_id
         ).first()
 
         if not cart_product:

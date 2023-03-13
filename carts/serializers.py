@@ -21,17 +21,18 @@ class CartSerializer(serializers.ModelSerializer):
 class CartProductsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartProducts
-        fields = ["id", "products", "cart", "quantity"]
+        fields = ["id", "product", "cart", "quantity", "seller"]
 
         extra_kwargs = {
             "id": {"read_only": True},
             "cart": {"read_only": True},
-            "products": {"read_only": True},
+            "product": {"read_only": True},
+            "seller": {"read_only": True},
         }
 
     def create(self, validated_data):
 
-        if validated_data["products"].stock < validated_data["quantity"]:
+        if validated_data["product"].stock < validated_data["quantity"]:
 
             raise serializers.ValidationError(
                 {"message": "Insufficient stock"}, status.HTTP_400_BAD_REQUEST
