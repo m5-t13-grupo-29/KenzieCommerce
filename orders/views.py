@@ -5,10 +5,10 @@ from .serializers import OrderSerializer
 from .models import Order
 from django.shortcuts import get_object_or_404
 from users.models import User
-from rest_framework.views import APIView, Request, Response, status
+from carts.models import Cart, CartProducts
 
 
-class OrderView(generics.ListCreateAPIView):
+class OrderProductsView(generics.ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = []
 
@@ -16,5 +16,9 @@ class OrderView(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
 
     def perform_create(self, serializer):
-        # self.check_object_permissions(self.request, self.request.user)
-        serializer.save(client_id=self.request.user.id)
+        user = get_object_or_404(User, id=self.request.user.id)
+        list_cart_products = CartProducts.objects.filter(cart_id=user.cart.id)
+        for item in list_cart_products:
+            cart_product = get_object_or_404(CartProducts, id=item.id)
+            product = get_object_or_404(Product, id=cart_product.products_id)
+            serializer.save(price=item.price, quantity=item.quantity, product=product)

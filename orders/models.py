@@ -17,4 +17,14 @@ class Order(models.Model):
     client = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="orders"
     )
-    products = models.ManyToManyField("products.Product", related_name="orders")
+
+    products = models.ManyToManyField(
+        "products.Product", through="orders.OrderProducts", related_name="orders"
+    )
+
+
+class OrderProducts(models.Model):
+    order = models.ForeignKey("orders.Order", on_delete=models.CASCADE)
+    product = models.ForeignKey("products.Product", on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField()
+    price = models.DecimalField(max_digits=8, decimal_places=2)
