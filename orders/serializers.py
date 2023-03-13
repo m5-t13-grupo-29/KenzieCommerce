@@ -70,6 +70,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
             previous_seller = product.seller
 
+        user.cart.delete()
         return order
 
     def update(self, instance, validated_data):
