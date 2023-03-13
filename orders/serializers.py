@@ -29,6 +29,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = get_object_or_404(User, id=validated_data["client_id"])
+        if not Cart.objects.filter(client_id=user.id).exists():
+            raise serializers.ValidationError(
+                {"message": "User has nothing in cart"}, status.HTTP_400_BAD_REQUEST
+            )
+
         list_cart_products = CartProducts.objects.filter(cart_id=user.cart.id).order_by(
             "seller"
         )
@@ -36,7 +41,6 @@ class OrderSerializer(serializers.ModelSerializer):
         previous_seller = list_cart_products[0].seller
 
         for item in list_cart_products:
-
             product = Product.objects.get(id=item.product_id)
             product.stock = product.stock - item.quantity
             product.save()
@@ -68,20 +72,5 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return order
 
-
-class OrderProductsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderProducts
-        fields = [
-            "id",
-            "price",
-            "quantity",
-            "product",
-        ]
-
-    extra_kwargs = {
-        "id": {"read_only": True},
-        "price": {"read_only": True},
-        "quantity": {"read_only": True},
-        "product": {"read_only": True},
-    }
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
