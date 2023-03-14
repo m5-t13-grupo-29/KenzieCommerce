@@ -20,17 +20,7 @@ class OrderView(generics.ListCreateAPIView):
 
 class OrderDatailView(generics.RetrieveUpdateAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsProductSeller]
-
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-
-    lookup_url_kwarg = "order_id"
-
-
-class OrderGetDatailView(generics.RetrieveUpdateAPIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminOrSellerOrOwner]
+    permission_classes = [IsProductSeller, IsAdminOrSellerOrOwner]
 
     queryset = Order.objects.all()
     serializer_class = OrderSerializer

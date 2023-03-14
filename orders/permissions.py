@@ -7,6 +7,9 @@ class IsProductSeller(permissions.BasePermission):
     def has_object_permission(self, request: Request, view: View, obj: Order):
         order_product = OrderProducts.objects.filter(order_id=obj.id).first()
 
+        if request.method == "GET":
+            return True
+
         if request.user.is_authenticated and request.user.is_superuser:
             return True
 
@@ -29,6 +32,9 @@ class IsAdminOrSeller(permissions.BasePermission):
 
 class IsAdminOrSellerOrOwner(permissions.BasePermission):
     def has_object_permission(self, request: Request, view: View, obj: Order):
+
+        if request.method == "PATCH":
+            return True
 
         if (
             request.user.is_authenticated
