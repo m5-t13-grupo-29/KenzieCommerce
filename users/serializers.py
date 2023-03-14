@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 from .models import User, Address
 
 
@@ -43,6 +43,7 @@ class UserSerializer(serializers.ModelSerializer):
             if key == "password":
                 instance.set_password(value)
             else:
+                print(key)
                 setattr(instance, key, value)
 
         instance.save()
