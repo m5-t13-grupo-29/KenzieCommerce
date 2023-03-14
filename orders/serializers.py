@@ -1,10 +1,12 @@
 from rest_framework import serializers
-from .models import Order, OrderProducts
+from .models import Order
 from carts.models import Cart, CartProducts
 from rest_framework.views import status
 from django.shortcuts import get_object_or_404
 from users.models import User
 from products.models import Product
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -29,6 +31,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = get_object_or_404(User, id=validated_data["client_id"])
+        if not Cart.objects.filter(client_id=user.id).exists():
+            raise serializers.ValidationError(
+                {"message": "User has nothing in cart"}, status.HTTP_400_BAD_REQUEST
+            )
+
         list_cart_products = CartProducts.objects.filter(cart_id=user.cart.id).order_by(
             "seller"
         )
@@ -36,7 +43,6 @@ class OrderSerializer(serializers.ModelSerializer):
         previous_seller = list_cart_products[0].seller
 
         for item in list_cart_products:
-
             product = Product.objects.get(id=item.product_id)
             product.stock = product.stock - item.quantity
             product.save()
@@ -66,22 +72,17 @@ class OrderSerializer(serializers.ModelSerializer):
 
             previous_seller = product.seller
 
+        user.cart.delete()
         return order
 
+    def update(self, instance, validated_data):
 
-class OrderProductsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderProducts
-        fields = [
-            "id",
-            "price",
-            "quantity",
-            "product",
-        ]
+        send_mail(
+            subject="Update your order",
+            message=f'Your order status has been updated to *{validated_data["status"]}*.',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[instance.client.email],
+            fail_silently=False,
+        )
 
-    extra_kwargs = {
-        "id": {"read_only": True},
-        "price": {"read_only": True},
-        "quantity": {"read_only": True},
-        "product": {"read_only": True},
-    }
+        return super().update(instance, validated_data)
