@@ -21,20 +21,40 @@ class CartSerializer(serializers.ModelSerializer):
 class CartProductsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartProducts
-        fields = ["id", "products", "cart", "quantity"]
+        fields = ["id", "product", "cart", "quantity", "seller"]
 
         extra_kwargs = {
             "id": {"read_only": True},
             "cart": {"read_only": True},
-            "products": {"read_only": True},
+            "product": {"read_only": True},
+            "seller": {"read_only": True},
         }
 
     def create(self, validated_data):
 
-        if validated_data["products"].stock < validated_data["quantity"]:
+        if not CartProducts.objects.filter(
+            cart_id=validated_data["cart"].id, product_id=validated_data["product"].id
+        ).exists():
 
-            raise serializers.ValidationError(
-                {"message": "Insufficient stock"}, status.HTTP_400_BAD_REQUEST
+            if validated_data["product"].stock < validated_data["quantity"]:
+                raise serializers.ValidationError(
+                    {"message": "Insufficient stock"}, status.HTTP_400_BAD_REQUEST
+                )
+            return CartProducts.objects.create(**validated_data)
+
+        else:
+            product_cart = CartProducts.objects.get(
+                cart_id=validated_data["cart"].id,
+                product_id=validated_data["product"].id,
             )
 
-        return CartProducts.objects.create(**validated_data)
+            quantity_product = product_cart.quantity + validated_data["quantity"]
+
+            if quantity_product > validated_data["product"].stock:
+                raise serializers.ValidationError(
+                    {"message": "Insufficient stock"}, status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                product_cart.quantity = quantity_product
+                product_cart.save()
+                return product_cart

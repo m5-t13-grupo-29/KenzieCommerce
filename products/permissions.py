@@ -8,5 +8,4 @@ class IsAdminOrProductSeller(permissions.BasePermission):
         if request.user.is_authenticated and request.user.is_superuser:
             return True
 
-        return (request.user.is_authenticated and
-                request.user.id == obj.seller.id)
+        return request.user.is_authenticated and request.user.id == obj.seller.id
