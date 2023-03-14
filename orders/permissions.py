@@ -19,6 +19,8 @@ class IsProductSeller(permissions.BasePermission):
 class IsAdminOrSeller(permissions.BasePermission):
     def has_permission(self, request: Request, view: View):
 
+        if request.method == "POST":
+            return True
         if request.user.is_superuser or request.user.is_seller:
             return True
 

@@ -1,10 +1,12 @@
 from rest_framework import serializers
-from .models import Order, OrderProducts
+from .models import Order
 from carts.models import Cart, CartProducts
 from rest_framework.views import status
 from django.shortcuts import get_object_or_404
 from users.models import User
 from products.models import Product
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -74,4 +76,13 @@ class OrderSerializer(serializers.ModelSerializer):
         return order
 
     def update(self, instance, validated_data):
+
+        send_mail(
+            subject="Update your order",
+            message=f'Your order status has been updated to *{validated_data["status"]}*.',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[instance.client.email],
+            fail_silently=False,
+        )
+
         return super().update(instance, validated_data)
