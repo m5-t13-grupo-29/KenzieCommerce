@@ -10,17 +10,15 @@ class IsAdminOrSellerOrReadOnly(permissions.BasePermission):
 
         return (
             request.user.is_authenticated
-            and (request.user.is_superuser
-            or request.user.is_seller)
+            and (request.user.is_superuser or request.user.is_seller)
         )
 
 
 class IsAdminToList(permissions.BasePermission):
     def has_permission(self, request: Request, view: View):
         if (request.method in permissions.SAFE_METHODS):
-            return (request.user.is_authenticated
-                    and request.user.is_superuser)
-
+            return (request.user.is_authenticated and (request.user.is_superuser or request.user.is_seller)
+        )
         return True
 
 
